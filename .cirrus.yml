@@ -1,7 +1,7 @@
 env:
     rclone_config: "ENCRYPTED[98af97cc21357a519fac9f4d4435f4d375e35180eb09b337c1e815646f7685eb7868cee594dafed25c7c9a7e5c25ed75]"
-    ccache_url: "ENCRYPTED[0f6f21d817bc07a6951569e11e20d2802eb2e53e6833cc01534b3102d52242aa019dabcd3c5776d70468ccc59d4299ab]"
-    scripts_url: "ENCRYPTED[a2ee27768329a9843396b77088a6d531ca97c31f533e4aa7a6fbc01434a31fddbb136d39dc1a490f86c83ae9f92b2b67]"
+    ccache_url: https://server.boedhack.workers.dev/ccache/ci2/ccache.tar.gz
+    scripts_url: https://github.com/boedhack99/scripts
 
 task:
     name: test
@@ -58,4 +58,3 @@ task:
       mkdir -p ~/.config/rclone
       echo "$rclone_config" > ~/.config/rclone/rclone.conf
       time rclone copy ccache.tar.gz dblenk:ccache/ci2 -P
-
