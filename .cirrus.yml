@@ -1,0 +1,61 @@
+env:
+    rclone_config: "ENCRYPTED[98af97cc21357a519fac9f4d4435f4d375e35180eb09b337c1e815646f7685eb7868cee594dafed25c7c9a7e5c25ed75]"
+    ccache_url: "ENCRYPTED[0f6f21d817bc07a6951569e11e20d2802eb2e53e6833cc01534b3102d52242aa019dabcd3c5776d70468ccc59d4299ab]"
+    scripts_url: "ENCRYPTED[a2ee27768329a9843396b77088a6d531ca97c31f533e4aa7a6fbc01434a31fddbb136d39dc1a490f86c83ae9f92b2b67]"
+
+task:
+    name: test
+    timeout_in: 120m
+    container:
+      image: cimg/android:30.0
+      cpu: 5
+      memory: 20G
+    run_script: |
+      sudo apt install aria2 ccache gzip pigz rclone -y
+      cd /tmp
+      time aria2c $ccache_url -x16 -s50
+      time tar xf ccache.tar.gz
+      rm -rf ccache.tar.gz
+      git config --global user.email "$GIT_MAIL"
+      git config --global user.name "marsellinus"
+      git config --global credential.helper "cache --timeout=7200"
+      echo "git identity setup successfully!"
+      git clone $scripts_url --depth=1 --branch master
+      scripts/setup/android_build_env.sh >/dev/null
+      bash scripts/setup/install_android_sdk.sh >/dev/null
+      mkdir -p /tmp/rom
+      cd /tmp/rom
+      repo init -q --no-repo-verify --depth=1 -u git://github.com/exthmui/android.git -b exthm-11 -g default,-device,-mips,-darwin,-notdefault
+      git clone https://github.com/marsellinus/local_manifest --depth=1 -b 11-exthm .repo/local_manifests
+      repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j30
+      export CCACHE_DIR=~/tmp/ccache
+      export USE_CCACHE=1 && export CCACHE_EXEC=/usr/bin/ccache && ccache -M 50G 
+      export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx16G"
+      export LC_ALL=C
+      ccache -o compression=true
+      ccache -z
+      . build/envsetup.sh
+      lunch exthm_mojito-userdebug
+      export ALLOW_MISSING_DEPENDENCIES=true
+      mka bacon
+      ccache -s
+      up() {
+        curl --upload-file $1 https://transfer.sh/$(basename $1); echo
+        # 14 days, 10 GB limit
+      }
+      up out/target/product/mojito/*.zip && up out/target/product/mojito/*.img
+      com () {
+        tar --use-compress-program="pigz -k -$2 " -cf $1.tar.gz $1
+      }
+      cd /tmp
+      export CCACHE_DIR=~ccache/tmp/rom
+      export CCACHE_EXEC=$(which ccache)
+      export USE_CCACHE=1
+      ccache -M 20G 
+      ccache -o compression=true
+      ccache -z
+      time com ccache 1
+      mkdir -p ~/.config/rclone
+      echo "$rclone_config" > ~/.config/rclone/rclone.conf
+      time rclone copy ccache.tar.gz dblenk:ccache/ci2 -P
+
