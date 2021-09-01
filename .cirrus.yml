@@ -25,8 +25,8 @@ task:
       bash scripts/setup/install_android_sdk.sh >/dev/null
       mkdir -p /tmp/rom
       cd /tmp/rom
-      repo init -q --no-repo-verify --depth=1 -u git://github.com/exthmui/android.git -b exthm-11 -g default,-device,-mips,-darwin,-notdefault
-      git clone https://github.com/marsellinus/local_manifest --depth=1 -b 11-exthm .repo/local_manifests
+      repo init -q --no-repo-verify --depth=1 -u git://github.com/Stellar-OS/android.git -b stellar-S1 -g default,-device,-mips,-darwin,-notdefault
+      git clone https://github.com/marsellinus/local_manifest --depth=1 -b mojito-stellar .repo/local_manifests
       repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j30
       export CCACHE_DIR=~/tmp/ccache
       export USE_CCACHE=1 && export CCACHE_EXEC=/usr/bin/ccache && ccache -M 50G 
