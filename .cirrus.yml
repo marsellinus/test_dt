@@ -35,7 +35,7 @@ task:
       ccache -o compression=true
       ccache -z
       . build/envsetup.sh
-      lunch stellarmojito-userdebug
+      lunch stellar_mojito-userdebug
       export ALLOW_MISSING_DEPENDENCIES=true
       mka bacon
       ccache -s
